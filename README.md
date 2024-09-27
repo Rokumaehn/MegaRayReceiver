@@ -1,5 +1,5 @@
 # MegaRayReceiver
-![demo](https://raw.githubusercontent.com/Rokumaehn/MegaRayReceiver/refs/heads/main/img/icon.png)
+![demo](https://raw.githubusercontent.com/Rokumaehn/MegaRayReceiver/refs/heads/main/img/demo.png)
 ## Introduction
 Mod for Dyson Sphere Program to make the ray receiver be able to request more power.
 For now, it doesn't trigger the abnormality check, meaning achievements will not be disabled.
