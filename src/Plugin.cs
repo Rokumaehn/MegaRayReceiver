@@ -17,7 +17,7 @@ namespace MegaRayReceiver
     {
         public const string GUID = "Rokumaehn.plugin.MegaRayReceiver";
         public const string NAME = "MegaRayReceiver";
-        public const string VERSION = "1.1.0";
+        public const string VERSION = "1.1.2";
 
         public static ConfigEntry<int> EnergyCapMultiplier;
         public static ManualLogSource Log;

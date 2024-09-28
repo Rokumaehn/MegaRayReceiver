@@ -9,7 +9,7 @@ namespace MegaRayReceiver;
 class UIPowerPanelPatch
 {
     public static int Multiplier = 10;
-    public static int SliderMax = 20;
+    public static int SliderMax = 19;
 
     public static ManualLogSource Log;
     static bool initialized;
@@ -135,8 +135,17 @@ class UIPowerPanelPatch
     {
         if (!eventLock)
         {
-            if (int.TryParse(val, out int value) && value >= 1)
+            if (int.TryParse(val, out int value) /* && value >= 1 */)
             {
+                if(value < 1)
+                {
+                    value = 1;
+                }
+                else if(value > 100)
+                {
+                    value = 100;
+                }
+                
                 Multiplier = (int)value;
                 Plugin.EnergyCapMultiplier.Value = Multiplier;
             }
