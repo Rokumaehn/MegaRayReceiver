@@ -11,17 +11,22 @@ class UIPowerPanelPatch
     public static bool AlwaysOn = false;
     public static int Multiplier = 10;
     public static int SliderMax = 19;
+    public static int Efficiency = 1;
 
     public static ManualLogSource Log;
     static bool initialized;
     static GameObject group;
     static InputField inputMultiplier;
+    static InputField inputEfficiency;
     static Slider sliderMultiplier;
+    static Slider sliderEfficiency;
     static UISwitch toggleAlwaysOn;
     static Text text_factory;
     static bool eventLock;
     static UITooltip tipInputMultiplier;
     static UITooltip tipSliderMultiplier;
+    static UITooltip tipInputEfficiency;
+    static UITooltip tipSliderEfficiency;
     static UITooltip tipToggleAlwaysOn;
 
     [HarmonyPostfix, HarmonyPatch(typeof(UIStatisticsWindow), nameof(UIStatisticsWindow._OnOpen))]
@@ -42,7 +47,7 @@ class UIPowerPanelPatch
                 group.transform.SetParent(panelObj.transform);
                 group.AddComponent<RectTransform>();
                 group.transform.localPosition = new Vector3(copyTransform.localPosition.x, copyTransform.localPosition.y);
-                group.transform.localScale = copyTransform.localScale;                
+                group.transform.localScale = copyTransform.localScale;
                 group.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0.5f);
                 group.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0.5f);
                 //group.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
@@ -61,7 +66,7 @@ class UIPowerPanelPatch
                 inputMultiplier = tmp.GetComponent<InputField>();
                 inputMultiplier.characterValidation = InputField.CharacterValidation.Integer;
                 inputMultiplier.contentType = InputField.ContentType.IntegerNumber;
-                inputMultiplier.onEndEdit.AddListener(new UnityAction<string>(OnInputValueEnd));
+                inputMultiplier.onEndEdit.AddListener(new UnityAction<string>(OnInputMulEnd));
                 tipInputMultiplier = tmp.AddComponent<UITooltip>();
                 tipInputMultiplier.Title = "Energy Cap Multiplier".Translate();
                 tipInputMultiplier.Text = "Multiplies the ray receiver's energy cap by the given amount.".Translate();
@@ -73,14 +78,44 @@ class UIPowerPanelPatch
                 sliderMultiplier.minValue = 1;
                 sliderMultiplier.maxValue = SliderMax;
                 sliderMultiplier.wholeNumbers = true;
-                sliderMultiplier.onValueChanged.AddListener(new UnityAction<float>(OnSliderChange));
+                sliderMultiplier.onValueChanged.AddListener(new UnityAction<float>(OnSliderMulChange));
                 tipSliderMultiplier = tmp.AddComponent<UITooltip>();
                 tipSliderMultiplier.Title = "Energy Cap Multiplier".Translate();
                 tipSliderMultiplier.Text = "Multiplies the ray receiver's energy cap by the given amount.".Translate();
 
+                tmp = GameObject.Instantiate(text0.gameObject, group.transform);
+                tmp.name = "text_rayreceff";
+                tmp.transform.localPosition = new Vector3(100, 19);
+                text_factory = tmp.GetComponent<Text>();
+                text_factory.text = "Ray Efficiency".Translate();
+
+                tmp = GameObject.Instantiate(input0.gameObject, group.transform);
+                tmp.name = "input_rayreceff";
+                tmp.transform.localPosition = new Vector3(305, 11);
+                tmp.GetComponent<RectTransform>().sizeDelta = new Vector2(36, 20);
+                inputEfficiency = tmp.GetComponent<InputField>();
+                inputEfficiency.characterValidation = InputField.CharacterValidation.Integer;
+                inputEfficiency.contentType = InputField.ContentType.IntegerNumber;
+                inputEfficiency.onEndEdit.AddListener(new UnityAction<string>(OnInputEffEnd));
+                tipInputEfficiency = tmp.AddComponent<UITooltip>();
+                tipInputEfficiency.Title = "Energy Efficiency".Translate();
+                tipInputEfficiency.Text = "Ray Receiver Efficiency in percent.".Translate();
+
+                tmp = GameObject.Instantiate(slider0.gameObject, group.transform);
+                tmp.name = "slider_rayreceff";
+                tmp.transform.localPosition = new Vector3(210, -10, -2);
+                sliderEfficiency = tmp.GetComponent<Slider>();
+                sliderEfficiency.minValue = 1;
+                sliderEfficiency.maxValue = 10;
+                sliderEfficiency.wholeNumbers = true;
+                sliderEfficiency.onValueChanged.AddListener(new UnityAction<float>(OnSliderEffChange));
+                tipSliderEfficiency = tmp.AddComponent<UITooltip>();
+                tipSliderEfficiency.Title = "Energy Cap Efficiency".Translate();
+                tipSliderEfficiency.Text = "Multiplies the ray receiver's energy cap by the given amount.".Translate();
+
                 tmp = GameObject.Instantiate(toggle0.gameObject, group.transform);
                 tmp.name = "toggle_rayrecaon";
-                tmp.transform.localPosition = new Vector3(225, 11);
+                tmp.transform.localPosition = new Vector3(370, 11);
                 tmp.GetComponent<RectTransform>().sizeDelta = new Vector2(36, 20);
                 toggleAlwaysOn = tmp.GetComponent<UISwitch>();
                 toggleAlwaysOn.onToggle += new System.Action<bool>(val =>
@@ -125,18 +160,22 @@ class UIPowerPanelPatch
             {
                 sliderMultiplier.value = 10 + (Multiplier - 10) / 10;
             }
-            tipToggleAlwaysOn.enabled = AlwaysOn;
+
+            inputEfficiency.text = Efficiency.ToString();
+            sliderEfficiency.value = Efficiency * 0.1f;
+            
+            toggleAlwaysOn.isOn = AlwaysOn;
         }
         eventLock = false;
     }
 
-    public static void OnSliderChange(float val)
+    public static void OnSliderMulChange(float val)
     {
         if (!eventLock)
         {
             val = Mathf.Round(val / 1f) * 1f;
             sliderMultiplier.value = val;
-            if(val <= 10)
+            if (val <= 10)
             {
                 Multiplier = (int)val;
             }
@@ -146,28 +185,64 @@ class UIPowerPanelPatch
             }
 
             Plugin.EnergyCapMultiplier.Value = Multiplier;
-            
+
             RefreshUI();
         }
     }
 
-    public static void OnInputValueEnd(string val)
+    public static void OnSliderEffChange(float val)
+    {
+        if (!eventLock)
+        {
+            val = Mathf.Round(val / 1f) * 1f;
+            sliderEfficiency.value = val;
+            Efficiency = (int)val * 10;
+
+            Plugin.EnergyEfficiency.Value = Efficiency;
+
+            RefreshUI();
+        }
+    }
+
+    public static void OnInputMulEnd(string val)
     {
         if (!eventLock)
         {
             if (int.TryParse(val, out int value) /* && value >= 1 */)
             {
-                if(value < 1)
+                if (value < 1)
                 {
                     value = 1;
                 }
-                else if(value > 100)
+                else if (value > 100)
                 {
                     value = 100;
                 }
-                
+
                 Multiplier = (int)value;
                 Plugin.EnergyCapMultiplier.Value = Multiplier;
+            }
+            RefreshUI();
+        }
+    }
+    
+    public static void OnInputEffEnd(string val)
+    {
+        if (!eventLock)
+        {
+            if (int.TryParse(val, out int value) /* && value >= 1 */)
+            {
+                if (value < 1)
+                {
+                    value = 1;
+                }
+                else if (value > 100)
+                {
+                    value = 100;
+                }
+
+                Efficiency = (int)value;
+                Plugin.EnergyEfficiency.Value = Efficiency;
             }
             RefreshUI();
         }
