@@ -8,6 +8,7 @@ namespace MegaRayReceiver;
 
 class UIPowerPanelPatch
 {
+    public static bool AlwaysOn = false;
     public static int Multiplier = 10;
     public static int SliderMax = 19;
 
@@ -16,10 +17,12 @@ class UIPowerPanelPatch
     static GameObject group;
     static InputField inputMultiplier;
     static Slider sliderMultiplier;
+    static UISwitch toggleAlwaysOn;
     static Text text_factory;
     static bool eventLock;
     static UITooltip tipInputMultiplier;
     static UITooltip tipSliderMultiplier;
+    static UITooltip tipToggleAlwaysOn;
 
     [HarmonyPostfix, HarmonyPatch(typeof(UIStatisticsWindow), nameof(UIStatisticsWindow._OnOpen))]
     public static void Init()
@@ -33,6 +36,7 @@ class UIPowerPanelPatch
                 Text text0 = UIRoot.instance.uiGame.statWindow.performancePanelUI.cpuValueText1;
                 GameObject panelObj = UIRoot.instance.uiGame.statWindow.powerAstroBox.gameObject.transform.parent.gameObject;
                 RectTransform copyTransform = UIRoot.instance.uiGame.statWindow.powerAstroBox.gameObject.GetComponent<RectTransform>();
+                UISwitch toggle0 = UIRoot.instance.uiGame.dysonEditor.controlPanel.inspector.overview.autoConstructSwitch;
 
                 group = new GameObject("RayReceiver_Group");
                 group.transform.SetParent(panelObj.transform);
@@ -74,6 +78,21 @@ class UIPowerPanelPatch
                 tipSliderMultiplier.Title = "Energy Cap Multiplier".Translate();
                 tipSliderMultiplier.Text = "Multiplies the ray receiver's energy cap by the given amount.".Translate();
 
+                tmp = GameObject.Instantiate(toggle0.gameObject, group.transform);
+                tmp.name = "toggle_rayrecaon";
+                tmp.transform.localPosition = new Vector3(225, 11);
+                tmp.GetComponent<RectTransform>().sizeDelta = new Vector2(36, 20);
+                toggleAlwaysOn = tmp.GetComponent<UISwitch>();
+                toggleAlwaysOn.onToggle += new System.Action<bool>(val =>
+                {
+                    if (eventLock) return;
+                    AlwaysOn = val;
+                    Plugin.AlwaysOn.Value = val;
+                });
+                tipToggleAlwaysOn = tmp.AddComponent<UITooltip>();
+                tipToggleAlwaysOn.Title = "Always On".Translate();
+                tipToggleAlwaysOn.Text = "When enabled, the ray receiver will always operate at maximum capacity.".Translate();
+
                 initialized = true;
 
                 RefreshUI();
@@ -106,6 +125,7 @@ class UIPowerPanelPatch
             {
                 sliderMultiplier.value = 10 + (Multiplier - 10) / 10;
             }
+            tipToggleAlwaysOn.enabled = AlwaysOn;
         }
         eventLock = false;
     }
