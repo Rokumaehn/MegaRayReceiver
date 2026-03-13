@@ -73,7 +73,7 @@ class UIPowerPanelPatch
 
                 tmp = GameObject.Instantiate(slider0.gameObject, group.transform);
                 tmp.name = "slider_rayrecmul";
-                tmp.transform.localPosition = new Vector3(60, -10, -2);
+                tmp.transform.localPosition = new Vector3(110, -10, -2);
                 sliderMultiplier = tmp.GetComponent<Slider>();
                 sliderMultiplier.minValue = 1;
                 sliderMultiplier.maxValue = SliderMax;
@@ -103,15 +103,15 @@ class UIPowerPanelPatch
 
                 tmp = GameObject.Instantiate(slider0.gameObject, group.transform);
                 tmp.name = "slider_rayreceff";
-                tmp.transform.localPosition = new Vector3(210, -10, -2);
+                tmp.transform.localPosition = new Vector3(260, -10, -2);
                 sliderEfficiency = tmp.GetComponent<Slider>();
                 sliderEfficiency.minValue = 1;
                 sliderEfficiency.maxValue = 10;
                 sliderEfficiency.wholeNumbers = true;
                 sliderEfficiency.onValueChanged.AddListener(new UnityAction<float>(OnSliderEffChange));
                 tipSliderEfficiency = tmp.AddComponent<UITooltip>();
-                tipSliderEfficiency.Title = "Energy Cap Efficiency".Translate();
-                tipSliderEfficiency.Text = "Multiplies the ray receiver's energy cap by the given amount.".Translate();
+                tipSliderEfficiency.Title = "Energy Efficiency".Translate();
+                tipSliderEfficiency.Text = "Multiplies the ray receiver's efficiency by the given amount.".Translate();
 
                 tmp = GameObject.Instantiate(toggle0.gameObject, group.transform);
                 tmp.name = "toggle_rayrecaon";
